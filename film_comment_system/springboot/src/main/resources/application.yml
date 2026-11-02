@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: dev
+
+# 图片等文件的存储目录（末尾需带 /）。默认沿用旧的「启动目录 + files」行为，保证生产部署不被影响；
+# 可用环境变量 FILE_UPLOAD_PATH 覆盖为固定绝对路径
+file:
+  upload-path: ${FILE_UPLOAD_PATH:${user.dir}/files/}

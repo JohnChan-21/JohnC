@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CommentMapper">
+
+    <insert id="save" parameterType="com.example.entity.Comment">
+        insert into comment(film_id, score, comment, issuer_id, issuer_type, time, type) 
+        values (#{filmId}, #{score}, #{comment}, #{issuerId}, #{issuerType}, #{time}, #{type})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.Comment">
+        update comment set film_id = #{filmId}, 
+                            score = #{score}, 
+                            comment = #{comment},
+                            issuer_id = #{issuerId}, 
+                            issuer_type = #{issuerType}, 
+                            time = #{time}, 
+                            type = #{type}
+        where id = #{id}
+    </update>
+
+    <delete id="removeById" parameterType="java.lang.Integer">
+        delete from comment where id = #{id}
+    </delete>
+
+    <select id="list" resultType="com.example.entity.Comment">
+        select comment.*, 
+        film.name as filmName,
+        CASE 
+            WHEN comment.issuer_type = 'USER' THEN user.name
+            WHEN comment.issuer_type = 'ADMIN' THEN admin.name
+            ELSE null
+        END as issuerName
+        from comment
+        left join film on comment.film_id = film.id
+        left join user on comment.issuer_id = user.id AND comment.issuer_type = user.role
+        left join admin on comment.issuer_id = admin.id AND comment.issuer_type = admin.role
+        <where>
+            <if test="filmName != null">and film.name like concat('%', #{filmName}, '%')</if>
+            <if test="issuerId != null">and comment.issuer_id = #{issuerId} AND comment.issuer_type = #{issuerType}</if>
+            <if test="type != null">and comment.type = #{type}</if>
+            <if test="filmId != null">and comment.film_id = #{filmId}</if>
+        </where>
+        order by comment.id desc
+    </select>
+
+    <select id="selectById" parameterType="java.lang.Integer" resultType="com.example.entity.Comment">
+        select comment.*,
+        film.name as filmName,
+        CASE 
+            WHEN comment.issuer_type = 'USER' THEN user.name
+            WHEN comment.issuer_type = 'ADMIN' THEN admin.name
+            ELSE null
+        END as issuerName
+        from comment
+        left join film on comment.film_id = film.id
+        left join user on comment.issuer_id = user.id AND comment.issuer_type = user.role
+        left join admin on comment.issuer_id = admin.id AND comment.issuer_type = admin.role
+        where comment.id = #{id}
+    </select>
+
+</mapper>

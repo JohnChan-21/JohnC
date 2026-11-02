@@ -1,0 +1,20 @@
+# IDE
+.idea/
+../.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# maven
+target/
+springboot/target/
+
+# 前端
+vue/node_modules/
+
+# OS
+.DS_Store
+
+# log
+*.log

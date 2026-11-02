@@ -1,0 +1,83 @@
+server:
+  port: 9090
+
+spring:
+  # 数据库配置：优先从环境变量读取，缺省回退到本地开发默认值（仅限本机 dev 使用）
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/film_comment_system?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2b8&allowPublicKeyRetrieval=true}
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  # Redis 配置：优先读环境变量，缺省使用本地无密码 Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        client:
+          name: film_comment_system
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: 3000ms
+
+# Sa-Token 配置
+sa-token:
+  # token 名称（同时也是 Cookie 名称）
+  token-name: satoken
+  # token 有效期（秒），默认 1 天
+  timeout: 86400
+  # token 最低活跃频率（秒），默认 1 小时
+  active-timeout: 3600
+  # 开启自动续期，每次请求刷新活跃时间
+  auto-renew-active-timeout: true
+  # 是否允许同一账号并发登录
+  is-concurrent: false
+  # 在多人登录同一账号时，是否共用一个 token
+  is-share: false
+  # token 风格（uuid）
+  token-style: uuid
+  # 是否输出操作日志
+  # is-log: true
+  # 是否尝试从 cookie 中读取 token
+  is-read-cookie: true
+  cookie:
+    # 跨站请求不带 Cookie → 挡 CSRF
+    same-site: Lax
+    # JS 读不到 token（XSS 防护）；前端从响应体取 token，不受影响
+    http-only: true
+    path: /
+    # 仅生产(https)开启；dev http 下别开 
+    secure: false
+
+# 配置mybatis-plus实体和xml映射
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    # 开启日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 开启驼峰映射
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+# 文件存储目录：开发环境默认固定到用户主目录下，与「从哪个根目录打开/启动」无关；
+# 如需沿用旧目录（film_comment_system/files），把环境变量 FILE_UPLOAD_PATH 指过去即可（末尾需带 /）
+file:
+  upload-path: ${FILE_UPLOAD_PATH:${user.home}/film_comment_files/}
+
+# 文件上传的前缀url
+fileBaseUrl: http://localhost:9090
+
+# CORS 允许的前端源（逗号分隔）：本地开发默认放行 Vite 的 localhost:5173
+cors:
+  allowed-origins: http://localhost:5173,http://127.0.0.1:5173

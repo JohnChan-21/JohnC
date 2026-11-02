@@ -1,0 +1,35 @@
+# ====================================================================
+# film_comment_system 后端 systemd 服务单元
+#
+# 部署步骤：
+#   1. 把构建产物复制到 /opt/film/app.jar
+#   2. 按 env.example 建 /etc/film-comment/env（chmod 600）
+#   3. mkdir -p /opt/film/film_comment_system/files && chown -R john123456:john123456 /opt/film
+#      （后端上传目录 = WorkingDirectory/film_comment_system/files）
+#   4. 把本文件复制到 /etc/systemd/system/film-comment.service
+#   5. systemctl daemon-reload && systemctl enable --now film-comment
+#   6. 查看日志：journalctl -u film-comment -f
+# ====================================================================
+
+[Unit]
+Description=Film Comment Spring Boot Application
+After=network.target mysql.service redis-server.service
+
+[Service]
+Type=simple
+User=john123456
+# ★ 工作目录必须显式指定：上传目录取的是工作目录下的 film_comment_system/files/
+WorkingDirectory=/opt/film
+# 密钥与连接参数统一由环境文件注入（仓库内无凭据）；prod profile 必带，否则会用 dev 配置
+EnvironmentFile=/etc/film-comment/env
+ExecStart=/usr/bin/java -Xms256m -Xmx512m -jar /opt/film/app.jar --spring.profiles.active=prod
+Restart=always
+RestartSec=5
+# 优雅停机：SIGTERM(143) 视为正常退出，避免 Restart=always 反复判断失败
+SuccessExitStatus=143
+# 基础安全加固
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
